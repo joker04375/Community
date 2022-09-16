@@ -2,6 +2,7 @@ package com.serein.community.mapper;
 
 import com.serein.community.entity.User;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 @Mapper
@@ -41,7 +42,7 @@ public interface UserMapper {
      * @param status
      * @return
      */
-    int updateStatus(Long id, Integer status);
+    int updateStatus(@Param("id")Long id, @Param("status") Integer status);
 
     /**
      * 更新用户的头像

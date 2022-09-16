@@ -1,6 +1,8 @@
 # 应用服务 WEB 访问端口
 server:
   port: 8080
+  servlet:
+    context-path: /community
 # 应用名称
 spring:
   application:
@@ -23,7 +25,16 @@ spring:
   # 关闭模板缓存（默认值： true ）
   thymeleaf:
     cache: false
-
+  # 邮箱
+  mail:
+    host: smtp.qq.com
+    protocol: smtp
+    port: 465
+    username: 985319769@qq.com
+    password: eashfcnatlawbbfd
+    properties.smtp.auth: true
+    properties.smtp.timeout: 2500
+    properties.mail.smtp.ssl.enable: true
 #下面这些内容是为了让MyBatis映射
 #指定Mybatis的Mapper文件
 #指定Mybatis的实体目录
@@ -33,6 +44,19 @@ mybatis:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     map-underscore-to-camel-case: true
+    use-generated-keys: true
+
+logging:
+  level:
+    root: info
+    com.serein.community: debug
+  file:
+    name: log/community-dev.log
+
+# community
+community:
+  path:
+    domain: http://localhost:8080
 
 #spring.thymeleaf.cache=true
 ## 检查模板是否存在，然后再呈现

@@ -7,6 +7,9 @@ import com.serein.community.mapper.UserMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import com.serein.community.util.MailClient;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.util.Date;
 import java.util.List;
@@ -52,5 +55,22 @@ class CommunityApplicationTests {
         System.out.println(i);
     }
 
+    @Autowired
+    private MailClient mailClient;
 
+    @Test
+    public void testSendEmail(){
+        mailClient.sendMail("398198945@qq.com","Test","测试");
+    }
+
+    @Autowired
+    private TemplateEngine templateEngine;
+
+    @Test
+    public void testSendEmailHtml(){
+        Context context = new Context();
+        context.setVariable("username","湘萍");
+        String content = templateEngine.process("/mail/threaten", context);
+        mailClient.sendMail("1354933501@qq.com","HTML",content);
+    }
 }
