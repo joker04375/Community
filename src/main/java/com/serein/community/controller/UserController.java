@@ -1,6 +1,7 @@
 package com.serein.community.controller;
 
 import com.github.pagehelper.util.StringUtil;
+import com.serein.community.annotation.LoginRequired;
 import com.serein.community.entity.User;
 import com.serein.community.mapper.UserMapper;
 import com.serein.community.service.UserService;
@@ -13,10 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletOutputStream;
@@ -46,11 +44,13 @@ public class UserController {
     @Autowired
     private UserMapper userMapper;
 
+    @LoginRequired
     @GetMapping("/setting")
     public String getSettingPage(){
         return "/site/setting";
     }
 
+    @LoginRequired
     @PostMapping("/upload")
     public String uploadHeader(MultipartFile headerImage, Model model){
         if(headerImage==null){
@@ -110,4 +110,32 @@ public class UserController {
             logger.error("读取头像失败: " + e.getMessage());
         }
     }
+
+    @LoginRequired
+    @PostMapping( "/settingPassword")
+    public String settingPassword(String oldPassword,String newPassword
+            ,Model model,@CookieValue("ticket") String ticket){
+        User user = UserHolder.getUser();
+        if(user == null){
+            return "/site/login";
+        }
+
+        if(user.getPassword().equals(CommunityUtil.md5(oldPassword+user.getSalt()))){
+            // 原密码输入正确
+            if(newPassword.length() < 6){
+                model.addAttribute("newPasswordMsg","新密码长度不能小于6位");
+                return "/site/setting";
+            }
+            userService.changePassword(user.getEmail(),newPassword);
+            userService.logout(ticket);
+            model.addAttribute("msg","修改密码成功，请尝试登陆");
+            model.addAttribute("target","/login");
+            return "/site/operate-result";
+        }
+        else {
+            model.addAttribute("oldPasswordMsg","原密码输入不正确");
+            return "/site/setting";
+        }
+    }
+
 }

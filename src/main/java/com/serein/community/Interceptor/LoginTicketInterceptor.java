@@ -18,8 +18,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 
 @Component
-public class LoginInterceptor implements HandlerInterceptor {
-    private static final Logger logger = LoggerFactory.getLogger(LoginInterceptor.class);
+public class LoginTicketInterceptor implements HandlerInterceptor {
+    private static final Logger logger = LoggerFactory.getLogger(LoginTicketInterceptor.class);
 
     @Autowired
     private UserService userService;

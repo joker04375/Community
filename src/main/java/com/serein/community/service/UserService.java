@@ -71,4 +71,6 @@ public interface UserService {
      * @return
      */
     int updateHeader(Long userId,String headUrl);
+
+
 }

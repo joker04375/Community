@@ -1,6 +1,7 @@
 package com.serein.community.config;
 
-import com.serein.community.Interceptor.LoginInterceptor;
+import com.serein.community.Interceptor.LoginRequiredInterceptor;
+import com.serein.community.Interceptor.LoginTicketInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -9,11 +10,16 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
     @Autowired
-    private LoginInterceptor loginInterceptor;
+    private LoginTicketInterceptor loginTicketInterceptor;
+
+    @Autowired
+    private LoginRequiredInterceptor loginRequiredInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(loginInterceptor)
+        registry.addInterceptor(loginTicketInterceptor)
+                .excludePathPatterns("/**/*.css","/**/*.js","/**/*.png","/**/*.jpg","/**/*.jpeg");
+        registry.addInterceptor(loginRequiredInterceptor)
                 .excludePathPatterns("/**/*.css","/**/*.js","/**/*.png","/**/*.jpg","/**/*.jpeg");
     }
 }
