@@ -50,7 +50,7 @@ public interface UserMapper {
      * @param headerUrl
      * @return
      */
-    int updateHeader(Long id, String headerUrl);
+    int updateHeader(@Param("id") Long id, @Param("headerUrl") String headerUrl);
 
     /**
      * 更新用户密码
@@ -58,7 +58,7 @@ public interface UserMapper {
      * @param password
      * @return
      */
-    int updatePassword(Long id, String password);
+    int updatePassword(@Param("id") Long id,@Param("password") String password);
 
     /**
      * 根据id删除用户

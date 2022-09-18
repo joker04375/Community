@@ -1,5 +1,7 @@
 package com.serein.community.service.impl;
 
+import com.serein.community.entity.LoginTicket;
+import com.serein.community.mapper.LoginTicketMapper;
 import com.serein.community.util.CommunityConstant;
 import com.serein.community.util.ErrorCode;
 import com.serein.community.dto.Result;
@@ -16,10 +18,15 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 @Service
 public class UserServiceImpl implements UserService {
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;
+
     @Autowired
     private UserMapper userMapper;
 
@@ -106,5 +113,103 @@ public class UserServiceImpl implements UserService {
         else{
             return CommunityConstant.ACTIVATION_FAILED;
         }
+    }
+
+    public Map<String,Object> login(String username, String password, int expiredSeconds){
+        Map<String, Object> map = new HashMap<>();
+        if(StringUtils.isBlank(username)){
+            map.put("usernameMsg","账号不能为空！");
+            return map;
+        }
+        if(StringUtils.isBlank(password)){
+            map.put("passwordMsg","密码不能为空！");
+            return map;
+        }
+        User user = userMapper.selectByName(username);
+        if(user==null){
+            map.put("usernameMsg","该账号不存在！");
+            return map;
+        }
+        if(user.getStatus() == 0){
+            map.put("usernameMsg","该账号未激活！");
+            return map;
+        }
+        password = CommunityUtil.md5(password + user.getSalt());
+        if(!user.getPassword().equals(password)){
+            map.put("passwordMsg","密码不正确！");
+            return map;
+        }
+
+        //生成登陆凭证
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(user.getId());
+        loginTicket.setTicket(CommunityUtil.generateUUID());
+        loginTicket.setStatus(0);
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000L));
+        loginTicketMapper.insertLoginTicket(loginTicket);
+
+
+        map.put("ticket",loginTicket.getTicket());
+        return map;
+    }
+
+    public void logout(String ticket){
+        loginTicketMapper.updateStatus(ticket,1);
+    }
+
+    @Override
+    public Map<String, Object> forgetCode(String email) {
+        Map<String, Object> map = new HashMap<>();
+        // 判断邮箱是否为空
+        if(StringUtils.isBlank(email)){
+            map.put("emailMsg","邮箱不能为空");
+            return map;
+        }
+
+        // 判断用户是否存在
+        User user = userMapper.selectByEmail(email);
+        if(user == null){
+            map.put("emailMsg","邮件未注册！请重新检查！");
+            return map;
+        }
+
+        // 发送邮件
+        Context context = new Context();
+        context.setVariable("email",email);
+        String code = CommunityUtil.generateUUID().substring(0,6);
+        context.setVariable("code",code);
+        map.put("code",code);
+
+        String content = templateEngine.process("/mail/forget",context);
+        mailClient.sendMail(email,"忘记密码",content);
+
+        return map;
+    }
+
+    @Override
+    public Map<String, Object> changePassword(String email, String newPassword) {
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        User user = userMapper.selectByEmail(email);
+        if(user == null){
+            map.put("emailMsg","邮箱错误");
+            return map;
+        }
+        if(newPassword.length()<=6){
+            map.put("passwordMsg","密码长度不能小于6位");
+            return map;
+        }
+
+        userMapper.updatePassword(user.getId(),CommunityUtil.md5(newPassword + user.getSalt()));
+        return map;
+    }
+
+    @Override
+    public LoginTicket findLoginTicketByTicket(String ticket) {
+        return loginTicketMapper.selectByTicket(ticket);
+    }
+
+    @Override
+    public int updateHeader(Long userId, String headUrl) {
+        return userMapper.updateHeader(userId,headUrl);
     }
 }
