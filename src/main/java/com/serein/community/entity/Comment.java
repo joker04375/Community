@@ -1,6 +1,5 @@
 package com.serein.community.entity;
 
-
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -8,18 +7,19 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class DiscussPost {
+public class Comment {
     private Long id;
     private Long userId;
-    private String title;
+    private Long entityId;
+    private Long targetId;
     private String content;
-    private Integer type;
-    private Integer status;
+    private int entityType;
+    private int status;
     private Date createTime;
 
-    private Integer commentCount;
-    private Double score;
-
+    //回复评论
     private User user;
-    private List<Comment> comments = new ArrayList<>();
+    private List<Comment> replyComments = new ArrayList<>();
+    private User target;
+
 }

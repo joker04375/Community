@@ -9,4 +9,10 @@ public interface DiscussPostService {
     List<DiscussPost> selectDiscussPosts(Long userId);
 
     int selectDiscussPostRows(Long userId);
+
+    int insertDiscussPost(DiscussPost discussPost);
+
+    DiscussPost selectDiscussPostById(Long id);
+
+    int updateCommentCount(Long id,int commentCount);
 }

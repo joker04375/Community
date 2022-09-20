@@ -1,9 +1,11 @@
 package com.serein.community.util;
 
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.UUID;
 
 public class CommunityUtil {
@@ -19,4 +21,26 @@ public class CommunityUtil {
         }
         return DigestUtils.md5DigestAsHex(key.getBytes());
     }
+
+    //返回JSON字符串
+    //参数：编码，提示信息,Map封装业务数据
+    public static String getJSONString(int code, String msg, Map<String,Object> map){
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code",code);
+        jsonObject.put("msg",msg);
+        if(map!=null){
+            for(String key: map.keySet()){
+                jsonObject.put(key,map.get(key));
+            }
+        }
+        return jsonObject.toJSONString();
+    }
+
+    public static String getJSONString(int code, String msg){
+        return getJSONString(code,msg,null);
+    }
+
+   public static String getJSONString(int code){
+       return getJSONString(code,null,null);
+   }
 }
