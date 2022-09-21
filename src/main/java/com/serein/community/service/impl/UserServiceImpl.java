@@ -212,4 +212,9 @@ public class UserServiceImpl implements UserService {
     public int updateHeader(Long userId, String headUrl) {
         return userMapper.updateHeader(userId,headUrl);
     }
+
+    @Override
+    public User selectByName(String name) {
+        return userMapper.selectByName(name);
+    }
 }

@@ -72,5 +72,10 @@ public interface UserService {
      */
     int updateHeader(Long userId,String headUrl);
 
-
+    /**
+     * 根据用户名查找
+     * @param name
+     * @return
+     */
+    User selectByName(String name);
 }

@@ -25,7 +25,7 @@ function publish() {
 			// 显示提示框
 			$("#hintModal").modal("show");
 
-			// 2秒后，自动隐藏提示框
+			// 1秒后，自动隐藏提示框
 			setTimeout(function(){
 				$("#hintModal").modal("hide");
 				// 刷新页面
@@ -36,6 +36,5 @@ function publish() {
 		}
 
 	);
-
 
 }
