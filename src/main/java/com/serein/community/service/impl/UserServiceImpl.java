@@ -2,17 +2,15 @@ package com.serein.community.service.impl;
 
 import com.serein.community.entity.LoginTicket;
 import com.serein.community.mapper.LoginTicketMapper;
-import com.serein.community.util.CommunityConstant;
-import com.serein.community.util.ErrorCode;
+import com.serein.community.util.*;
 import com.serein.community.dto.Result;
 import com.serein.community.entity.User;
 import com.serein.community.mapper.UserMapper;
 import com.serein.community.service.UserService;
-import com.serein.community.util.CommunityUtil;
-import com.serein.community.util.MailClient;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -21,11 +19,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserServiceImpl implements UserService {
-    @Autowired
-    private LoginTicketMapper loginTicketMapper;
+//    @Autowired
+//    private LoginTicketMapper loginTicketMapper;
 
     @Autowired
     private UserMapper userMapper;
@@ -41,6 +40,9 @@ public class UserServiceImpl implements UserService {
 
     @Value("${server.servlet.context-path}")
     private String contextPath;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     public Result register(User user){
         if(user==null){
@@ -98,8 +100,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User selectById(Long id) {
-        return userMapper.selectById(id);
+//        return userMapper.selectById(id);
+        User user = getCacheUser(id);
+        if(user == null){
+            user = initCache(id);
+        }
+        return user;
     }
+
 
     public int activation(Long userId,String code){
         User user = userMapper.selectById(userId);
@@ -108,6 +116,7 @@ public class UserServiceImpl implements UserService {
         }
         else if(user.getActivationCode().equals(code)){
             userMapper.updateStatus(userId,1);
+            clearCacheUser(userId);
             return CommunityConstant.ACTIVATION_SUCCESS;
         }
         else{
@@ -146,15 +155,22 @@ public class UserServiceImpl implements UserService {
         loginTicket.setTicket(CommunityUtil.generateUUID());
         loginTicket.setStatus(0);
         loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000L));
-        loginTicketMapper.insertLoginTicket(loginTicket);
+//        loginTicketMapper.insertLoginTicket(loginTicket);
 
+        String redisKey = RedisConstant.getTicketKey(loginTicket.getTicket());
+        // 序列化json字符串保存
+        redisTemplate.opsForValue().set(redisKey,loginTicket);
 
         map.put("ticket",loginTicket.getTicket());
         return map;
     }
 
     public void logout(String ticket){
-        loginTicketMapper.updateStatus(ticket,1);
+//        loginTicketMapper.updateStatus(ticket,1);
+        String redisKey = RedisConstant.getTicketKey(ticket);
+        LoginTicket loginTicket = (LoginTicket)redisTemplate.opsForValue().get(redisKey);
+        loginTicket.setStatus(1);
+        redisTemplate.opsForValue().set(redisKey,loginTicket);
     }
 
     @Override
@@ -205,16 +221,40 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public LoginTicket findLoginTicketByTicket(String ticket) {
-        return loginTicketMapper.selectByTicket(ticket);
+//        return loginTicketMapper.selectByTicket(ticket);
+        String redisKey = RedisConstant.getTicketKey(ticket);
+        return (LoginTicket) redisTemplate.opsForValue().get(redisKey);
     }
 
     @Override
     public int updateHeader(Long userId, String headUrl) {
-        return userMapper.updateHeader(userId,headUrl);
+        int rows = userMapper.updateHeader(userId,headUrl);
+        clearCacheUser(userId);
+        return rows;
     }
 
     @Override
     public User selectByName(String name) {
         return userMapper.selectByName(name);
+    }
+
+    // 1.优先从缓存中读取数据
+    public User getCacheUser(Long userId){
+        String redisKey = RedisConstant.getUserKey(userId);
+        return (User) redisTemplate.opsForValue().get(redisKey);
+    }
+
+    // 2.取不到时初始化缓存数据
+    private User initCache(Long userId){
+        User user = userMapper.selectById(userId);
+        String redisKey = RedisConstant.getUserKey(userId);
+        redisTemplate.opsForValue().set(redisKey,user,3600, TimeUnit.SECONDS);
+        return user;
+    }
+
+    // 3.数据变更时清楚缓存数据
+    public void clearCacheUser(Long userId){
+        String redisKey = RedisConstant.getUserKey(userId);
+        redisTemplate.delete(redisKey);
     }
 }

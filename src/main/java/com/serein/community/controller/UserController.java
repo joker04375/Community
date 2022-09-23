@@ -1,10 +1,13 @@
 package com.serein.community.controller;
 
-import com.github.pagehelper.util.StringUtil;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.serein.community.annotation.LoginRequired;
+import com.serein.community.entity.Comment;
+import com.serein.community.entity.DiscussPost;
 import com.serein.community.entity.User;
-import com.serein.community.mapper.UserMapper;
-import com.serein.community.service.UserService;
+import com.serein.community.service.*;
+import com.serein.community.util.CommunityConstant;
 import com.serein.community.util.CommunityUtil;
 import com.serein.community.util.UserHolder;
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.List;
 
 @Controller
 @RequestMapping("/user")
@@ -42,7 +46,16 @@ public class UserController {
     private String contextPath;
 
     @Autowired
-    private UserMapper userMapper;
+    private LikeService likeService;
+
+    @Autowired
+    private FollowService followService;
+
+    @Autowired
+    private DiscussPostService discussPostService;
+
+    @Autowired
+    private CommentService commentService;
 
     @LoginRequired
     @GetMapping("/setting")
@@ -138,4 +151,79 @@ public class UserController {
         }
     }
 
+
+    // 个人主页 个人信息
+    @GetMapping("/profile/{userId}")
+    public String getProfilePage(@PathVariable("userId")Long userId,Model model){
+        User user = userService.selectById(userId);
+        if(user==null){
+            throw new IllegalArgumentException("用户不存在");
+        }
+
+        // 用户
+        model.addAttribute("user",user);
+
+        // 点赞数量
+        int likeCount = likeService.findUserLikeCountByUserId(userId);
+        model.addAttribute("likeCount",likeCount);
+
+        // 关注数量
+        Long followeeCount = followService.findFolloweeCount(userId, CommunityConstant.ENTITY_TYPE_USER);
+        model.addAttribute("followeeCount",followeeCount);
+
+        // 粉丝数量
+        Long followerCount = followService.findFollowerCount(CommunityConstant.ENTITY_TYPE_USER,userId);
+        model.addAttribute("followerCount",followerCount);
+
+        // 是否已关注
+        boolean hasFollowed = false;
+        if(UserHolder.getUser()!=null){
+            hasFollowed = followService.hasFollowed(UserHolder.getUser().getId(), CommunityConstant.ENTITY_TYPE_USER,userId);
+        }
+        model.addAttribute("hasFollowed",hasFollowed);
+
+        return "/site/profile";
+    }
+
+    // 个人主页 我的帖子
+    @GetMapping("/myPost/{userId}")
+    public String getMyPostPage(@PathVariable("userId")Long userId,Model model, @RequestParam(defaultValue = "1",value = "pageNum") Integer pageNum){
+        User user = userService.selectById(userId);
+        PageHelper.startPage(pageNum,5);
+        List<DiscussPost> list = discussPostService.selectDiscussPosts(userId);
+        if(list!=null){
+            for (DiscussPost discussPost : list) {
+                Long likeCount = likeService.findEntityLikeCount(CommunityConstant.ENTITY_TYPE_POST, discussPost.getId());
+                discussPost.setLikeCount(likeCount);
+            }
+        }
+
+        PageInfo<DiscussPost> pageInfo = new PageInfo<>(list);
+
+        model.addAttribute("pageInfo",pageInfo);
+        model.addAttribute("user",user);
+
+        return "/site/my-post";
+    }
+
+    // 个人主页 我的回复
+    @GetMapping("/myReply/{userId}")
+    public String getMyReplyPage(@PathVariable("userId")Long userId,Model model, @RequestParam(defaultValue = "1",value = "pageNum") Integer pageNum){
+        User user = userService.selectById(userId);
+        PageHelper.startPage(pageNum,5);
+        List<Comment> list = commentService.findReplyByUser(userId);
+        if(list!=null){
+            for (Comment comment : list) {
+                DiscussPost discussPost = discussPostService.selectDiscussPostById(comment.getEntityId());
+                comment.setDiscussPost(discussPost);
+            }
+        }
+
+        PageInfo<Comment> pageInfo = new PageInfo<>(list);
+
+        model.addAttribute("pageInfo",pageInfo);
+        model.addAttribute("user",user);
+
+        return "/site/my-reply";
+    }
 }

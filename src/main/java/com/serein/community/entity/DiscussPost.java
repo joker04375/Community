@@ -20,6 +20,8 @@ public class DiscussPost {
     private Integer commentCount;
     private Double score;
 
+    // 用户，评论，点赞数
     private User user;
     private List<Comment> comments = new ArrayList<>();
+    private Long likeCount;
 }

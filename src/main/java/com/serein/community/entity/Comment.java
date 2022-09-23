@@ -17,9 +17,16 @@ public class Comment {
     private int status;
     private Date createTime;
 
-    //回复评论
+    // 回复评论
     private User user;
     private List<Comment> replyComments = new ArrayList<>();
     private User target;
+    // 对应的文章
+    private DiscussPost discussPost;
+
+    // 点赞数量
+    private Long likeCount;
+    // 点赞状态
+    private int likeStatus;
 
 }

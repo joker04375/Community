@@ -3,6 +3,7 @@ package com.serein.community.service.impl;
 import com.serein.community.entity.DiscussPost;
 import com.serein.community.mapper.DiscussPostMapper;
 import com.serein.community.service.DiscussPostService;
+import com.serein.community.service.LikeService;
 import com.serein.community.util.SensitiveFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

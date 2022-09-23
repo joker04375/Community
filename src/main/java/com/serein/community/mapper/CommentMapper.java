@@ -21,4 +21,6 @@ public interface CommentMapper {
     List<Comment> selectCommentsByUser(Long userId);
 
     int selectCountByUser(Long userId);
+
+    List<Comment> selectCommentsByTarget(Long targetId);
 }

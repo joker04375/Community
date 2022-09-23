@@ -48,4 +48,9 @@ public class CommentServiceImpl implements CommentService {
         }
         return commentMapper.insertComment(comment);
     }
+
+    @Override
+    public List<Comment> findReplyByUser(Long userId) {
+        return commentMapper.selectCommentsByTarget(userId);
+    }
 }

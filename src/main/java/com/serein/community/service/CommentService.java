@@ -9,4 +9,6 @@ public interface CommentService {
     List<Comment> selectCommentsByEntity(@Param("entityType") int entityType, @Param("entityId") Long entityId);
 
     int insertComment(Comment comment);
+
+    List<Comment> findReplyByUser(Long userId);
 }

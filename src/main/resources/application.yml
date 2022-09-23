@@ -35,6 +35,24 @@ spring:
     properties.smtp.auth: true
     properties.smtp.timeout: 2500
     properties.mail.smtp.ssl.enable: true
+
+  redis:
+    database: 7
+    host: 192.168.153.129
+    port: 6379
+    password: 123
+    timeout: 6000
+
+  #Kafka
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: test-consumer-group
+      # 自动提交
+      enable-auto-commit: true
+      # 自动提交的频率
+      auto-commit-interval: 3000
+
 #下面这些内容是为了让MyBatis映射
 #指定Mybatis的Mapper文件
 #指定Mybatis的实体目录

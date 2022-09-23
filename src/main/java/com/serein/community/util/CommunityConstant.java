@@ -35,4 +35,9 @@ public class CommunityConstant {
      * 回复
      */
     public static final int ENTITY_TYPE_COMMENT = 2;
+
+    /**
+     * 用户
+     */
+    public static final int ENTITY_TYPE_USER = 3;
 }

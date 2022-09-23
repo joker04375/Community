@@ -8,6 +8,7 @@ import com.serein.community.entity.DiscussPost;
 import com.serein.community.entity.User;
 import com.serein.community.service.CommentService;
 import com.serein.community.service.DiscussPostService;
+import com.serein.community.service.LikeService;
 import com.serein.community.service.UserService;
 import com.serein.community.util.CommunityConstant;
 import com.serein.community.util.CommunityUtil;
@@ -31,6 +32,10 @@ public class DiscussPostController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private LikeService likeService;
+
 
     @PostMapping("/add")
     @ResponseBody
@@ -61,7 +66,21 @@ public class DiscussPostController {
         // 查询作者
         User user = userService.selectById(discussPost.getUserId());
         discussPost.setUser(user);
+
+        // 点赞数量
+        Long LikeCount = likeService.findEntityLikeCount(CommunityConstant.ENTITY_TYPE_POST, discussPostId);
+        discussPost.setLikeCount(LikeCount);
+
+        // 点赞状态
+        int likeStatus;
+        if(user==null){
+            likeStatus = 0;
+        }
+        likeStatus = likeService.findEntityLikeStatus(user.getId(),CommunityConstant.ENTITY_TYPE_POST,discussPostId);
+
+        model.addAttribute("likeStatus",likeStatus);
         model.addAttribute("discussPost",discussPost);
+
 
         PageHelper.startPage(pageNum,5);
         List<Comment> comments = commentService.selectCommentsByEntity(CommunityConstant.ENTITY_TYPE_POST, discussPost.getId());
@@ -74,6 +93,18 @@ public class DiscussPostController {
                 comment.setUser(userService.selectById(comment.getUserId()));
                 List<Comment> replyList = commentService.selectCommentsByEntity(CommunityConstant.ENTITY_TYPE_COMMENT, comment.getId());
 
+                // 点赞数量
+                Long LikeCount1 = likeService.findEntityLikeCount(CommunityConstant.ENTITY_TYPE_COMMENT, comment.getId());
+                comment.setLikeCount(LikeCount1);
+
+                // 点赞状态
+                int likeStatus1;
+                if(user == null){
+                    likeStatus1 = 0;
+                }
+                likeStatus1 = likeService.findEntityLikeStatus(user.getId(),CommunityConstant.ENTITY_TYPE_COMMENT,comment.getId());
+                comment.setLikeStatus(likeStatus1);
+
                 for (Comment reply : replyList) {
                     // 回复
                     // 回复的目标
@@ -82,6 +113,18 @@ public class DiscussPostController {
                             ? null
                             : userService.selectById(reply.getTargetId());
                     reply.setTarget(target);
+
+                    // 点赞数量
+                    Long LikeCount2 = likeService.findEntityLikeCount(CommunityConstant.ENTITY_TYPE_COMMENT, reply.getId());
+                    comment.setLikeCount(LikeCount2);
+
+                    // 点赞状态
+                    int likeStatus2;
+                    if(user == null){
+                        likeStatus2 = 0;
+                    }
+                    likeStatus2 = likeService.findEntityLikeStatus(user.getId(),CommunityConstant.ENTITY_TYPE_COMMENT,reply.getId());
+                    comment.setLikeStatus(likeStatus2);
                 }
                 comment.setReplyComments(replyList);
             }

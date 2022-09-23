@@ -20,7 +20,7 @@ import java.util.Date;
 public class ServiceLogAspect {
     private static final Logger logger = LoggerFactory.getLogger(ServiceLogAspect.class);
 
-    @Pointcut("execution (* com.serein.community.service.impl.*.*(..))")
+    @Pointcut("execution (* com.serein.community.service.*.*(..))")
     public void log(){}
 
     @Before("log()")
@@ -29,6 +29,9 @@ public class ServiceLogAspect {
 
         // 获取request对象，读取ip
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if(attributes == null){
+            return;
+        }
         HttpServletRequest request = attributes.getRequest();
         String ip = request.getRemoteHost();
         String now = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
@@ -37,6 +40,6 @@ public class ServiceLogAspect {
         String target = joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName();
 
         // 记录日志
-        logger.info(String.format("用户[%s],在[%s],访问了[%s]."),ip,now,target);
+        logger.info(String.format("用户[%s],在[%s],访问了[%s].",ip,now,target));
     }
 }

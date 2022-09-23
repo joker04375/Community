@@ -2,16 +2,19 @@ package com.serein.community.controller;
 
 import com.google.code.kaptcha.Producer;
 import com.serein.community.util.CommunityConstant;
+import com.serein.community.util.CommunityUtil;
 import com.serein.community.util.ErrorCode;
 import com.serein.community.dto.Result;
 import com.serein.community.entity.User;
 import com.serein.community.service.UserService;
+import com.serein.community.util.RedisConstant;
 import com.sun.deploy.net.HttpResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +27,7 @@ import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 
 @Controller
@@ -39,6 +43,9 @@ public class LoginController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     @GetMapping("/register")
     public String getRegisterPage(){
         return "/site/register";
@@ -52,10 +59,22 @@ public class LoginController {
 
     @PostMapping("/login")
     public String login(String username,String password,String code,boolean rememberMe,
-                        Model model,HttpSession session,HttpServletResponse response){
+                        Model model,HttpSession session,HttpServletResponse response,
+                        @CookieValue("kaptchaOwner")String kaptchaOwner){
 
-        // 检查验证码
-        String kaptcha = (String)session.getAttribute("kaptcha");
+//        // 检查验证码
+//        String kaptcha = (String)session.getAttribute("kaptcha");
+//        if(StringUtils.isBlank(kaptcha) || StringUtils.isBlank(code) || !kaptcha.equalsIgnoreCase(code)){
+//            model.addAttribute("codeMsg","验证码不正确！");
+//            return "/site/login";
+//        }
+
+        // 从redis中取验证码
+        String kaptcha = null;
+        if(StringUtils.isNotBlank(kaptchaOwner)){
+            String redisKey = RedisConstant.getKaptchaKey(kaptchaOwner);
+            kaptcha = (String)redisTemplate.opsForValue().get(redisKey);
+        }
         if(StringUtils.isBlank(kaptcha) || StringUtils.isBlank(code) || !kaptcha.equalsIgnoreCase(code)){
             model.addAttribute("codeMsg","验证码不正确！");
             return "/site/login";
@@ -94,8 +113,19 @@ public class LoginController {
         String text = kaptchaProducer.createText();
         BufferedImage image = kaptchaProducer.createImage(text);
 
-        // 将验证码存入session
-        session.setAttribute("kaptcha",text);
+//        // 将验证码存入session
+//        session.setAttribute("kaptcha",text);
+
+        // 将验证码存入redis,验证码的归属者
+        // 生成用户标识
+        String kaptchaOwner = RedisConstant.getKaptchaKey(CommunityUtil.generateUUID());
+        Cookie cookie = new Cookie("kaptchaOwner",kaptchaOwner);
+        cookie.setMaxAge(60);
+        cookie.setPath(contextPath);
+        response.addCookie(cookie);
+        // 存入redis
+        String redisKey = RedisConstant.getKaptchaKey(kaptchaOwner);
+        redisTemplate.opsForValue().set(redisKey,text,60, TimeUnit.SECONDS);
 
         // 将图片输出浏览器
         response.setContentType("/image/png");

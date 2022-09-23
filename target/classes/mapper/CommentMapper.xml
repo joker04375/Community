@@ -59,5 +59,17 @@
             )
     </select>
 
+    <select id="selectCommentsByTarget" resultType="com.serein.community.entity.Comment">
+        select <include refid="selectFields"></include>
+        from comment
+        where status != 1
+        and target_id = #{targetId}
+        and entity_type = 2
+        and exists(
+        select id from discuss_post where id = comment.entity_id and status != 2
+        )
+        order by create_time desc
+    </select>
+
 
 </mapper>
