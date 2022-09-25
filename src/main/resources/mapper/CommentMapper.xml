@@ -31,7 +31,7 @@
           and entity_id = #{entityId}
     </select>
 
-    <select id="selectByCommentById" resultType="com.serein.community.entity.Comment">
+    <select id="selectCommentById" resultType="com.serein.community.entity.Comment">
         select <include refid="selectFields"></include>
         from comment
         where id = #{id}

@@ -16,7 +16,7 @@ public interface CommentMapper {
 
     int insertComment(Comment comment);
 
-    Comment selectByCommentById(Long id);
+    Comment selectCommentById(Long id);
 
     List<Comment> selectCommentsByUser(Long userId);
 

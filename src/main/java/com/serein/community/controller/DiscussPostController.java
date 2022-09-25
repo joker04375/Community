@@ -59,7 +59,7 @@ public class DiscussPostController {
     }
 
     @GetMapping("/detail/{discussPostId}")
-    public String getDiscussPost(@PathVariable("discussPostId") Long discussPostId, Model model,@RequestParam(defaultValue = "1",value = "pageNum") Integer pageNum){
+    public String getDiscussPost(@PathVariable("discussPostId") Long discussPostId, Model model,@RequestParam(defaultValue = "1", value = "pageNum") Integer pageNum){
         // 查询帖子
         DiscussPost discussPost = discussPostService.selectDiscussPostById(discussPostId);
 

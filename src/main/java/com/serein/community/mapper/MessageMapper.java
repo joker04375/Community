@@ -30,4 +30,16 @@ public interface MessageMapper {
 
     // 更改消息状态
     int updateStatus(@Param("ids") List<Long> ids,@Param("status") int status);
+
+    // 查询某个主题最新的通知
+    Message selectLatestNotice(@Param("userId") Long userId,@Param("topic") String topic);
+
+    // 查询某个主题所包含的通知数量
+    int selectNoticeCount(@Param("userId")Long userId,@Param("topic")String topic);
+
+    // 查询未读的通知数量
+    int selectNoticeUnreadCount(@Param("userId")Long userId,@Param("topic")String topic);
+
+    // 查询某个主题所包含的通知列表
+    List<Message> selectNotices(@Param("userId")Long userId,@Param("topic") String topic);
 }

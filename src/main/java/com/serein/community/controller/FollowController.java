@@ -3,7 +3,9 @@ package com.serein.community.controller;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.serein.community.annotation.LoginRequired;
+import com.serein.community.entity.Event;
 import com.serein.community.entity.User;
+import com.serein.community.event.EventProducer;
 import com.serein.community.service.FollowService;
 import com.serein.community.service.UserService;
 import com.serein.community.util.CommunityConstant;
@@ -25,12 +27,24 @@ public class FollowController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private EventProducer eventProducer;
+
     @LoginRequired
     @PostMapping("/follow")
     @ResponseBody
     public String follow(int entityType,Long entityId){
         User user = UserHolder.getUser();
         followService.follow(user.getId(),entityType,entityId);
+
+        // 触发关注事件
+        Event event = new Event();
+        event.setTopic(CommunityConstant.TOPIC_FOLLOW);
+        event.setUserId(user.getId());
+        event.setEntityType(entityType);
+        event.setEntityId(entityId);
+        event.setEntityUserId(entityId);
+        eventProducer.fireEvent(event);
 
         return CommunityUtil.getJSONString(0,"已关注");
     }

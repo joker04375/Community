@@ -37,7 +37,7 @@ public class LikeServiceImpl implements LikeService {
                 // 开启事务
                 redisOperations.multi();
 
-                // 当前用户点赞的同时，更新被点赞用户点赞的数量
+                // 当前用户点赞的同时，更新被点赞用户点赞的数量，否则取消点赞做相反的处理
                 if(isMember){
                     redisOperations.opsForSet().remove(entityLikeKey,userId);
                     redisOperations.opsForValue().decrement(userLikeKey);

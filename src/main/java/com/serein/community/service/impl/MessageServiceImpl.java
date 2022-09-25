@@ -59,4 +59,22 @@ public class MessageServiceImpl implements MessageService {
     public int readMessage(List<Long> ids) {
         return messageMapper.updateStatus(ids,1);
     }
+
+    @Override
+    public Message findLatestNotice(Long userId,String topic){
+        return messageMapper.selectLatestNotice(userId,topic);
+    }
+    @Override
+    public int findNoticeCount(Long userId,String topic){
+        return messageMapper.selectNoticeCount(userId,topic);
+    }
+    @Override
+    public int findNoticeUnreadCount(Long userId,String topic){
+        return messageMapper.selectNoticeUnreadCount(userId,topic);
+    }
+
+    @Override
+    public List<Message> selectNotices(Long userId, String topic) {
+        return messageMapper.selectNotices(userId,topic);
+    }
 }

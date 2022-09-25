@@ -11,4 +11,6 @@ public interface CommentService {
     int insertComment(Comment comment);
 
     List<Comment> findReplyByUser(Long userId);
+
+    Comment selectCommentById(Long id);
 }

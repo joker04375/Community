@@ -23,9 +23,17 @@ public interface MessageService {
     int insertMessage(Message message);
 
     // 删除消息
-    public int delMessage(List<Long> ids);
-
+    int delMessage(List<Long> ids);
 
     // 修改消息为已读状态
     int readMessage(List<Long> ids);
+
+    // 查询最新的系统通知
+    Message findLatestNotice(Long userId,String topic);
+
+    int findNoticeCount(Long userId,String topic);
+
+    int findNoticeUnreadCount(Long userId,String topic);
+
+    List<Message> selectNotices(Long userId,String topic);
 }
