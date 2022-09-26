@@ -1,8 +1,11 @@
 package com.serein.community.event;
 
 import com.alibaba.fastjson.JSONObject;
+import com.serein.community.entity.DiscussPost;
 import com.serein.community.entity.Event;
 import com.serein.community.entity.Message;
+import com.serein.community.service.DiscussPostService;
+import com.serein.community.service.ElasticsearchService;
 import com.serein.community.service.MessageService;
 import com.serein.community.util.CommunityConstant;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -23,6 +26,12 @@ public class EventConsumer {
     @Autowired
     private MessageService messageService;
 
+    @Autowired
+    private DiscussPostService discussPostService;
+
+    @Autowired
+    private ElasticsearchService elasticsearchService;
+
     @KafkaListener(topics = {CommunityConstant.TOPIC_COMMENT,CommunityConstant.TOPIC_LIKE,CommunityConstant.TOPIC_FOLLOW})
     public void handleCommentMessage(ConsumerRecord record){
         if(record == null || record.value() == null){
@@ -33,6 +42,7 @@ public class EventConsumer {
         Event event = JSONObject.parseObject(record.value().toString(), Event.class);
         if(event == null){
             logger.error("");
+            return;
         }
 
         // 发送站内通知
@@ -60,5 +70,23 @@ public class EventConsumer {
 
         message.setContent(JSONObject.toJSONString(content));
         messageService.insertMessage(message);
+    }
+
+    // 消费发帖事件
+    @KafkaListener(topics = {CommunityConstant.TOPIC_PUBLISH})
+    public void handlePublishMessage(ConsumerRecord record){
+        if(record == null || record.value() == null){
+            logger.error("消息的内容为空");
+            return;
+        }
+
+        Event event = JSONObject.parseObject(record.value().toString(), Event.class);
+        if(event == null){
+            logger.error("");
+            return;
+        }
+
+        DiscussPost discussPost = discussPostService.selectDiscussPostById(event.getEntityId());
+        elasticsearchService.saveDiscussPost(discussPost);
     }
 }

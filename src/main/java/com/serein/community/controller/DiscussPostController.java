@@ -5,7 +5,9 @@ import com.github.pagehelper.PageInfo;
 import com.serein.community.dto.Result;
 import com.serein.community.entity.Comment;
 import com.serein.community.entity.DiscussPost;
+import com.serein.community.entity.Event;
 import com.serein.community.entity.User;
+import com.serein.community.event.EventProducer;
 import com.serein.community.service.CommentService;
 import com.serein.community.service.DiscussPostService;
 import com.serein.community.service.LikeService;
@@ -36,6 +38,8 @@ public class DiscussPostController {
     @Autowired
     private LikeService likeService;
 
+    @Autowired
+    private EventProducer eventProducer;
 
     @PostMapping("/add")
     @ResponseBody
@@ -53,6 +57,14 @@ public class DiscussPostController {
         discussPost.setStatus(0);
         discussPost.setCreateTime(new Date());
         discussPostService.insertDiscussPost(discussPost);
+
+        // 触发发帖事件
+        Event event = new Event();
+        event.setTopic(CommunityConstant.TOPIC_PUBLISH);
+        event.setUserId(user.getId());
+        event.setEntityType(CommunityConstant.ENTITY_TYPE_POST);
+        event.setEntityId(discussPost.getId());
+        eventProducer.fireEvent(event);
 
         // 报错的情况将来统一处理
         return CommunityUtil.getJSONString(0,"发布成功");

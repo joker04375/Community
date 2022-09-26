@@ -64,6 +64,17 @@ public class CommentController {
         // 调用生产者
         eventProducer.fireEvent(event);
 
+
+        // 触发发帖事件，修改评论数量
+        if(comment.getEntityType() == CommunityConstant.ENTITY_TYPE_POST){
+            event = new Event();
+            event.setTopic(CommunityConstant.TOPIC_PUBLISH);
+            event.setUserId(user.getId());
+            event.setEntityType(CommunityConstant.ENTITY_TYPE_POST);
+            event.setEntityId(discussPostId);
+            eventProducer.fireEvent(event);
+        }
+
         return "redirect:/discussPost/detail/" + discussPostId ;
     }
 

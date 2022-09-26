@@ -3,6 +3,7 @@ package com.serein.community.entity;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -12,7 +13,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-@Document(indexName = "discussPost")
+@Document(indexName = "discusspost")
 public class DiscussPost {
     @Id
     private Long id;
@@ -32,7 +33,7 @@ public class DiscussPost {
     @Field(type = FieldType.Integer)
     private Integer status;
 
-    @Field(type = FieldType.Date)
+    @Field(type = FieldType.Date,format = DateFormat.basic_date_time)
     private Date createTime;
 
     @Field(type = FieldType.Integer)

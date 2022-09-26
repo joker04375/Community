@@ -1,9 +1,11 @@
 package com.serein.community.controller;
 
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.serein.community.entity.DiscussPost;
+import com.serein.community.entity.Page;
 import com.serein.community.entity.User;
-import com.serein.community.service.DiscussPostService;
+import com.serein.community.service.ElasticsearchService;
 import com.serein.community.service.LikeService;
 import com.serein.community.service.UserService;
 import com.serein.community.util.CommunityConstant;
@@ -11,30 +13,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import com.github.pagehelper.PageHelper;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.*;
+import java.util.List;
 
 @Controller
-public class IndexController {
+public class SearchController {
     @Autowired
-    private DiscussPostService discussPostService;
-
-    @Autowired
-    private UserService userService;
+    private ElasticsearchService elasticsearchService;
 
     @Autowired
     private LikeService likeService;
 
-    @GetMapping("/index")
-    public String getIndexPage(Model model, @RequestParam(defaultValue = "1",value = "pageNum") Integer pageNum){
+    @Autowired
+    private UserService userService;
 
-//        List<Map<String,Object>> discussPosts = new ArrayList<>();
-        PageHelper.startPage(pageNum, 10);
-
-        List<DiscussPost> list = discussPostService.selectDiscussPosts(null);
-
+    @GetMapping("/search")
+    public String search(String keyword, Model model, Page page){
+        // 搜索帖子
+        List<DiscussPost> list = elasticsearchService.searchDiscussPost(keyword,page.getCurrent() - 1, page.getLimit());
         if(list != null){
             for (DiscussPost discussPost : list) {
                 User user = userService.selectById(discussPost.getUserId());
@@ -43,16 +40,13 @@ public class IndexController {
                 discussPost.setLikeCount(likeCount);
             }
         }
+        model.addAttribute("list",list);
+        model.addAttribute("keyword",keyword);
+        //分页信息
+        page.setPath("/search?keyword=" + keyword);
+        long count = elasticsearchService.searchDiscussPostTotal(keyword);
+        page.setRows(count == 0 ? 0 : (int) count);
 
-        PageInfo<DiscussPost> pageInfo = new PageInfo<>(list);
-        System.out.println("test: "+pageInfo.getList().size());
-
-        model.addAttribute("pageInfo",pageInfo);
-        return "/index";
-    }
-
-    @GetMapping("/error")
-    public String getErrorPage(){
-        return "/error/500";
+        return "/site/search";
     }
 }
