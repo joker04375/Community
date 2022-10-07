@@ -4,7 +4,9 @@ package com.serein.community.service;
 import com.serein.community.dto.Result;
 import com.serein.community.entity.LoginTicket;
 import com.serein.community.entity.User;
+import org.springframework.security.core.GrantedAuthority;
 
+import java.util.Collection;
 import java.util.Map;
 
 public interface UserService {
@@ -78,4 +80,6 @@ public interface UserService {
      * @return
      */
     User selectByName(String name);
+
+    Collection<? extends GrantedAuthority> getAuthorities(Long userId);
 }

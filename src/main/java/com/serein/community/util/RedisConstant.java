@@ -8,6 +8,8 @@ public class RedisConstant {
     private static final String KAPTCHA = "kaptcha";
     private static final String TICKET = "ticket";
     private static final String USER = "user";
+    private static final String UV = "uv";
+    private static final String DAU = "dau";
 
     // 某个实体的赞
     // like:entity:entityType:entityId -> set(userId)
@@ -45,5 +47,25 @@ public class RedisConstant {
     // 登录凭证
     public static String getUserKey(Long userId){
         return USER + ":" + userId;
+    }
+
+    // 单日uv
+    public static String getUVKey(String date){
+        return UV + ":" + date;
+    }
+
+    // 区间uv
+    public static String getUVKey(String startDate,String endDate){
+        return UV + ":" + startDate + ":" + endDate;
+    }
+
+    // 单日活跃用户
+    public static String getDAUKey(String date){
+        return DAU + ":" + date;
+    }
+
+    // 区间活跃用户
+    public static String getDAUKey(String startDate,String endDate){
+        return DAU + ":" + startDate + ":" + endDate;
     }
 }

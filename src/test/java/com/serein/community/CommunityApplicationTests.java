@@ -6,6 +6,7 @@ import com.serein.community.entity.User;
 import com.serein.community.mapper.DiscussPostMapper;
 import com.serein.community.mapper.LoginTicketMapper;
 import com.serein.community.mapper.UserMapper;
+import lombok.Data;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +29,7 @@ class CommunityApplicationTests {
     @Test
     void testSelectUserById(){
 //        User user = userMapper.selectById(102L);
+//        System.out.println(user.username);
 //        System.out.println(user);
         List<DiscussPost> list = discussPostMapper.selectDiscussPosts(null);
         System.out.println(list);
@@ -94,4 +96,22 @@ class CommunityApplicationTests {
         LoginTicket abc = loginTicketMapper.selectByTicket("abc");
         System.out.println(abc);
     }
+
+    @Test
+    public void testLinkList(){
+        ListNode listNode = new ListNode(1);
+    }
 }
+
+class ListNode {
+    int val;
+    ListNode next;
+    ListNode() {}
+    ListNode(int val) { this.val = val; }
+    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+}
+
+
+
+
+

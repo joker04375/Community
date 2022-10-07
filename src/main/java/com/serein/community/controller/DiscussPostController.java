@@ -148,5 +148,57 @@ public class DiscussPostController {
         return "/site/discuss-detail";
     }
 
+    //置顶
+    @PostMapping("/top")
+    @ResponseBody
+    public String setTop(Long id){
+        discussPostService.updateType(id,1);
 
+        // 触发发帖事件
+        Event event = new Event();
+        event.setTopic(CommunityConstant.TOPIC_PUBLISH);
+        event.setUserId(UserHolder.getUser().getId());
+        event.setEntityType(CommunityConstant.ENTITY_TYPE_POST);
+        event.setEntityId(id);
+
+        eventProducer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0);
+    }
+
+    //加精
+    @PostMapping("/wonderful")
+    @ResponseBody
+    public String setWonderful(Long id){
+        discussPostService.updateStatus(id,1);
+
+        // 触发发帖事件
+        Event event = new Event();
+        event.setTopic(CommunityConstant.TOPIC_PUBLISH);
+        event.setUserId(UserHolder.getUser().getId());
+        event.setEntityType(CommunityConstant.ENTITY_TYPE_POST);
+        event.setEntityId(id);
+
+        eventProducer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0);
+    }
+
+    //删除
+    @PostMapping("/delete")
+    @ResponseBody
+    public String setDelete(Long id){
+        discussPostService.updateStatus(id,2);
+
+        // 触发发帖事件
+        Event event = new Event();
+        event.setTopic(CommunityConstant.TOPIC_DELETE);
+        event.setUserId(UserHolder.getUser().getId());
+        event.setEntityType(CommunityConstant.ENTITY_TYPE_POST);
+        event.setEntityId(id);
+
+        eventProducer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0);
+    }
 }

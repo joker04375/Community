@@ -82,11 +82,28 @@ public class EventConsumer {
 
         Event event = JSONObject.parseObject(record.value().toString(), Event.class);
         if(event == null){
-            logger.error("");
+            logger.error("消息格式错误");
             return;
         }
 
         DiscussPost discussPost = discussPostService.selectDiscussPostById(event.getEntityId());
         elasticsearchService.saveDiscussPost(discussPost);
+    }
+
+    // 消费删帖事件
+    @KafkaListener(topics = {CommunityConstant.TOPIC_PUBLISH})
+    public void handleDeleteMessage(ConsumerRecord record){
+        if(record == null || record.value() == null){
+            logger.error("消息的内容为空");
+            return;
+        }
+
+        Event event = JSONObject.parseObject(record.value().toString(), Event.class);
+        if(event == null){
+            logger.error("消息格式错误");
+            return;
+        }
+
+        elasticsearchService.deleteDiscussPost(event.getEntityId());
     }
 }
